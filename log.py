@@ -3,7 +3,7 @@ from PyQt5.uic import loadUi
 import io
 from PyQt5.QtWidgets import QLabel, QTableWidget, QPushButton, QApplication, QMainWindow, QProgressBar, QLineEdit, \
     QStatusBar, QTableWidgetItem, QComboBox, QWidget, QMenu, QAction, QFileDialog, QHBoxLayout
-from PyQt5.QtGui import QColor
+from PyQt5.QtGui import QColor, QIcon
 import csv
 from xlsxwriter.workbook import Workbook
 
@@ -282,6 +282,7 @@ class Logic(QMainWindow):
     def loadUI(self):
         f_menu = io.StringIO(form)
         loadUi(f_menu, self)
+        self.setWindowIcon(QIcon("icon.jpg"))
         self.setCentralWidget(self.centralwidget)
         self.table: QTableWidget
         self.pushButton: QPushButton
@@ -298,6 +299,8 @@ class Logic(QMainWindow):
         self.menu_2.aboutToShow.connect(self.show_ins)
         self.clear_btn: QPushButton
         self.clear_btn.clicked.connect(self.clear_tabe)
+        self.action_5: QAction
+        self.action_5.triggered.connect(self.open_table)
 
     def show_ins(self):
         self.instryk.show()
@@ -405,6 +408,7 @@ class Logic(QMainWindow):
                 mas.append(splog[j][i])
             self.peremen.append(Premen(mas, alplabet[i]))
         self.table.setHorizontalHeaderLabels(alplabet)
+        self.table.resizeColumnsToContents()
 
     def varage(self):
         self.table: QTableWidget
@@ -448,6 +452,29 @@ class Logic(QMainWindow):
             for j in range(self.table.rowCount()):
                 self.table.item(j, i).setBackground(QColor(255, 255, 255))
         self.table.setHorizontalHeaderLabels(self.labels)
+        self.table.resizeColumnsToContents()
+
+    def open_table(self):
+        self.fail, ok = QFileDialog.getOpenFileName(self, 'открыть', "*.csv")
+        if ok:
+            self.table: QTableWidget
+            self.table.clear()
+
+            file_input = open(self.fail, encoding="utf-8")
+            reader = csv.reader(file_input, delimiter=';', quotechar='"')
+            reader = list(reader)
+            self.table.setRowCount(len(reader) - 1)
+            self.table.setColumnCount(len(reader[0]))
+            self.table.setHorizontalHeaderLabels(reader[0])
+            for index, row in enumerate(reader):
+                if index == 0:
+                    continue
+                for i in range(len(row)):
+                    self.table.setItem(index, i, QTableWidgetItem(str(reader[index][i])))
+            self.table.resizeColumnsToContents()
+            file_input.close()
+            if len(reader) - 1 != 2 ** len(reader[0]):
+                self.pushButton.setEnabled(False)
 
     def vabor(self):
         self.table: QTableWidget
