@@ -311,8 +311,10 @@ class Logic(QMainWindow):
             if not ok:
                 return None
             else:
-
-                self.fail = self.fail[:-5] + ".csv"
+                if len(self.fail) > 5:
+                    self.fail = self.fail[:-5] + ".csv"
+                else:
+                    self.fail = self.fail + ".csv"
                 self.save_table()
         csvfile = self.fail
         if csvfile != "":
@@ -350,9 +352,10 @@ class Logic(QMainWindow):
                     writer.writerow(row)
 
     def save_table(self):
+        ok = True
         if self.fail is None:
             self.fail, ok = QFileDialog.getSaveFileName(self, 'сохранить', "*.csv")
-        if self.fail != "":
+        if self.fail != "" and ok:
             with open(self.fail, 'w', newline='') as csvfile:
                 writer = csv.writer(
                     csvfile, delimiter=';', quotechar='"',
@@ -365,10 +368,7 @@ class Logic(QMainWindow):
                     for j in range(self.table.columnCount()):
                         item = self.table.item(i, j)
                         if item is not None:
-                            try:
-                                row.append(int(item.text()))
-                            except BaseException:
-                                row.append(item.text())
+                            row.append(int(item.text()))
                     writer.writerow(row)
 
     def clear_tabe(self):
@@ -382,6 +382,7 @@ class Logic(QMainWindow):
         self.pushButton: QPushButton
         self.pushButton.setEnabled(True)
         self.fail = None
+        self.table.setRowCount(0)
 
     def create_log(self):
         self.table: QTableWidget
@@ -459,7 +460,6 @@ class Logic(QMainWindow):
         if ok:
             self.table: QTableWidget
             self.table.clear()
-
             file_input = open(self.fail, encoding="utf-8")
             reader = csv.reader(file_input, delimiter=';', quotechar='"')
             reader = list(reader)
@@ -475,6 +475,15 @@ class Logic(QMainWindow):
             file_input.close()
             if len(reader) - 1 != 2 ** len(reader[0]):
                 self.pushButton.setEnabled(False)
+            mas = []
+            for i in range(len(reader[0])):
+                new = []
+                for j in range(1, len(reader)):
+                    new.append(reader[j][i])
+                mas.append(new)
+            for i in range(len(mas)):
+                self.peremen.append(Premen(mas[i], reader[0][i]))
+                self.labels.append(reader[0][i])
 
     def vabor(self):
         self.table: QTableWidget
