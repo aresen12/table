@@ -1,7 +1,7 @@
 import sys
 from PyQt5.uic import loadUi
 import io
-from PyQt5.QtWidgets import QLabel, QTableWidget, QPushButton, QApplication, QMainWindow, QProgressBar, QLineEdit, \
+from PyQt5.QtWidgets import QLabel, QTableWidget, QPushButton, QApplication, QMainWindow, QLineEdit, \
     QStatusBar, QTableWidgetItem, QComboBox, QWidget, QMenu, QAction, QFileDialog, QHBoxLayout
 from PyQt5.QtGui import QColor, QIcon
 import csv
@@ -288,7 +288,10 @@ class Logic(QMainWindow):
         loadUi(f_menu, self)
         self.statys = QStatusBar(self)
         self.setStatusBar(self.statys)
-        self.setWindowIcon(QIcon("icon.jpg"))
+        try:
+            self.setWindowIcon(QIcon("icon.jpg"))
+        except FileNotFoundError:
+            pass
         self.setCentralWidget(self.centralwidget)
         self.table: QTableWidget
         self.pushButton: QPushButton
@@ -439,6 +442,8 @@ class Logic(QMainWindow):
             self.two_v: Premen
             d = self.two_v + self.first_v
         elif self.log_oper.currentText() == "и(*)":
+            self.two_v: Premen
+            self.first_v: Premen
             d = self.two_v * self.first_v
         elif self.log_oper.currentText() == "экьюваленция(<->)":
             self.two_v: Premen
@@ -446,6 +451,7 @@ class Logic(QMainWindow):
             d = self.two_v == self.first_v
         elif self.log_oper.currentText() == "импликация(->)":
             self.first_v: Premen
+            self.two_v: Premen
             d = self.first_v.implik(self.two_v)
         else:
             self.two_v: Premen
