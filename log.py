@@ -178,6 +178,7 @@ text = '''\t\tИнструкция
 3. Дизъюнкция(+), строгая дизюнкция(⊕) 
 4. Импликация(->)
 5. Экюваленция (=)
+Версия 1.1
 \npowered by Arsenii Mineev'''
 
 
@@ -278,10 +279,15 @@ class Logic(QMainWindow):
         self.fail = None
         self.instryk = Instyk()
         self.instryk.hide()
+        self.save_flag = False
+        self.statys = QStatusBar(self)
+        self.setStatusBar(self.statys)
 
     def loadUI(self):
         f_menu = io.StringIO(form)
         loadUi(f_menu, self)
+        self.statys = QStatusBar(self)
+        self.setStatusBar(self.statys)
         self.setWindowIcon(QIcon("icon.jpg"))
         self.setCentralWidget(self.centralwidget)
         self.table: QTableWidget
@@ -307,14 +313,11 @@ class Logic(QMainWindow):
 
     def export(self):
         if self.fail is None:
-            self.fail, ok = QFileDialog.getSaveFileName(self, 'сохранить', "*.xlsx")
+            self.fail, ok = QFileDialog.getSaveFileName(self, 'сохранить', "", "*.xlsx")
             if not ok:
                 return None
             else:
-                if len(self.fail) > 5:
-                    self.fail = self.fail[:-5] + ".csv"
-                else:
-                    self.fail = self.fail + ".csv"
+                self.fail = self.fail[:-5] + ".csv"
                 self.save_table()
         csvfile = self.fail
         if csvfile != "":
@@ -328,13 +331,13 @@ class Logic(QMainWindow):
             workbook.close()
 
     def save_as_table(self):
-        fail, ok = QFileDialog.getSaveFileName(self, 'сохранить', "*.csv")
+        fail, ok = QFileDialog.getSaveFileName(self, 'сохранить', "", "*.csv")
         if fail != "" and ok:
+            self.save_flag = True
             with open(fail, 'w', newline='') as csvfile:
                 writer = csv.writer(
                     csvfile, delimiter=';', quotechar='"',
                     quoting=csv.QUOTE_MINIMAL)
-                # Получение списка заголовков
                 writer.writerow(
                     [self.table.horizontalHeaderItem(i).text()
                      for i in range(self.table.columnCount())])
@@ -344,18 +347,18 @@ class Logic(QMainWindow):
                         item = self.table.item(i, j)
                         if item is not None:
                             item: QTableWidgetItem
-                            try:
-                                row.append(int(item.text()))
-                            except BaseException:
-                                row.append(item.text())
-                                print(str)
+                            row.append(int(item.text()))
                     writer.writerow(row)
+            self.setWindowTitle(f"Таблицы истинности ({self.fail.split('/')[-1]})")
 
     def save_table(self):
         ok = True
         if self.fail is None:
-            self.fail, ok = QFileDialog.getSaveFileName(self, 'сохранить', "*.csv")
+            self.fail, ok = QFileDialog.getSaveFileName(self, 'сохранить', "", "*.csv")
+            if len(self.fail) == 0:
+                return None
         if self.fail != "" and ok:
+            self.save_flag = True
             with open(self.fail, 'w', newline='') as csvfile:
                 writer = csv.writer(
                     csvfile, delimiter=';', quotechar='"',
@@ -370,8 +373,11 @@ class Logic(QMainWindow):
                         if item is not None:
                             row.append(int(item.text()))
                     writer.writerow(row)
+            self.setWindowTitle(f"Таблицы истинности ({self.fail.split('/')[-1]})")
+            self.statys.showMessage(f"Сохреннен файл {self.fail.split('/')[-1]}")
 
     def clear_tabe(self):
+        self.setWindowTitle("Таблицы истинности")
         self.labels.clear()
         self.peremen.clear()
         self.table: QTableWidget
@@ -382,7 +388,9 @@ class Logic(QMainWindow):
         self.pushButton: QPushButton
         self.pushButton.setEnabled(True)
         self.fail = None
+
         self.table.setRowCount(0)
+        self.statys.showMessage("Таблица очищена", 5000)
 
     def create_log(self):
         self.table: QTableWidget
@@ -410,6 +418,11 @@ class Logic(QMainWindow):
             self.peremen.append(Premen(mas, alplabet[i]))
         self.table.setHorizontalHeaderLabels(alplabet)
         self.table.resizeColumnsToContents()
+        self.save_flag = False
+        if self.fail is None and not self.save_flag:
+            self.setWindowTitle(f"Таблицы истинности (не сохраненно)")
+        else:
+            self.setWindowTitle(f"Таблицы истинности-{self.fail.split('/')[-1]}(не сохраненно)")
 
     def varage(self):
         self.table: QTableWidget
@@ -454,9 +467,14 @@ class Logic(QMainWindow):
                 self.table.item(j, i).setBackground(QColor(255, 255, 255))
         self.table.setHorizontalHeaderLabels(self.labels)
         self.table.resizeColumnsToContents()
+        self.save_flag = False
+        if self.fail is None and not self.save_flag:
+            self.setWindowTitle(f"Таблицы истинности (не сохраненно)")
+        else:
+            self.setWindowTitle(f"Таблицы истинности-{self.fail.split('/')[-1]}(не сохраненно)")
 
     def open_table(self):
-        self.fail, ok = QFileDialog.getOpenFileName(self, 'открыть', "*.csv")
+        self.fail, ok = QFileDialog.getOpenFileName(self, 'открыть', "", "*.csv")
         if ok:
             self.table: QTableWidget
             self.table.clear()
@@ -484,8 +502,18 @@ class Logic(QMainWindow):
             for i in range(len(mas)):
                 self.peremen.append(Premen(mas[i], reader[0][i]))
                 self.labels.append(reader[0][i])
+            self.setWindowTitle(f"Таблицы истинности-{self.fail.split('/')[-1]}")
+            self.statys.showMessage(f"Открыт файл {self.fail}", 5000)
 
     def vabor(self):
+        if isinstance(self.first_v, Premen) and isinstance(self.two_v, Premen):
+            self.first_v = ""
+            self.two_v = ''
+            self.statys.showMessage("Выбор снят", 5000)
+            for i in range(self.table.columnCount()):
+                for j in range(self.table.rowCount()):
+                    self.table.item(j, i).setBackground(QColor(255, 255, 255))
+            return None
         self.table: QTableWidget
         mas = []
         for i in self.table.selectedItems():
