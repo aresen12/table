@@ -205,7 +205,7 @@ class Premen:
                 new.append(1)
             else:
                 new.append(0)
-        return Premen(new, f"-{self.name}")
+        return Premen(new, f"не{self.name}")
 
     def __mul__(self, other):
         new = []
