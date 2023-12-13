@@ -337,7 +337,7 @@ class Logic(QMainWindow):
         fail, ok = QFileDialog.getSaveFileName(self, 'сохранить', "", "*.csv")
         if fail != "" and ok:
             self.save_flag = True
-            with open(fail, 'w', newline='') as csvfile:
+            with open(fail, 'w', newline='', encoding="utf-8") as csvfile:
                 writer = csv.writer(
                     csvfile, delimiter=';', quotechar='"',
                     quoting=csv.QUOTE_MINIMAL)
@@ -362,7 +362,7 @@ class Logic(QMainWindow):
                 return None
         if self.fail != "" and ok:
             self.save_flag = True
-            with open(self.fail, 'w', newline='') as csvfile:
+            with open(self.fail, 'w', newline='', encoding="utf-8") as csvfile:
                 writer = csv.writer(
                     csvfile, delimiter=';', quotechar='"',
                     quoting=csv.QUOTE_MINIMAL)
